@@ -1,3 +1,4 @@
+import {Ionicons} from '@expo/vector-icons';
 import {useLocalSearchParams,useRouter} from 'expo-router';
 import {ScrollView,StyleSheet,Text,TouchableOpacity,View} from 'react-native';
 
@@ -9,9 +10,14 @@ type Round = {
 
 export default function RezultatScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ rounds?: string }>();
+
+  const params = useLocalSearchParams<{
+    rounds?: string;
+    targetScore?: string;
+  }>();
 
   const rounds: Round[] = params.rounds ? JSON.parse(params.rounds) : [];
+  const targetScore = Number(params.targetScore || 1001);
 
   const totalMi = rounds.reduce((sum, round) => sum + round.mi, 0);
   const totalVi = rounds.reduce((sum, round) => sum + round.vi, 0);
@@ -21,6 +27,17 @@ export default function RezultatScreen() {
       pathname: '/unos',
       params: {
         rounds: JSON.stringify(rounds),
+        targetScore: String(targetScore),
+      },
+    });
+  };
+
+  const goToSettings = () => {
+    router.push({
+      pathname: '/postavke',
+      params: {
+        rounds: JSON.stringify(rounds),
+        targetScore: String(targetScore),
       },
     });
   };
@@ -30,25 +47,32 @@ export default function RezultatScreen() {
       pathname: '/rezultat',
       params: {
         rounds: JSON.stringify([]),
+        targetScore: String(targetScore),
       },
     });
   };
 
   return (
     <View style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={goToSettings}>
+          <Ionicons name="settings-outline" size={26} color="#334030" />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.scoreCard}>
         <View style={styles.team}>
-          <Text style={styles.label}>MI</Text>
           <Text style={styles.score}>{totalMi}</Text>
         </View>
 
         <View style={styles.divider} />
 
         <View style={styles.team}>
-          <Text style={styles.label}>VI</Text>
           <Text style={styles.score}>{totalVi}</Text>
         </View>
       </View>
+
+      <Text style={styles.targetText}>Igra do {targetScore}</Text>
 
       <View style={styles.table}>
         <View style={styles.tableHeader}>
@@ -64,7 +88,6 @@ export default function RezultatScreen() {
             </View>
           ))}
         </ScrollView>
-
       </View>
 
       <TouchableOpacity style={styles.addButton} onPress={goToInput}>
@@ -84,24 +107,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
 
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingTop: 18,
+    paddingHorizontal: 20,
+  },
+
   scoreCard: {
     backgroundColor: 'rgba(183,213,175,0.55)',
-    margin: 20,
+    marginHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 8,
     borderRadius: 20,
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 25,
+    alignItems: 'center',
+    paddingVertical: 25,
   },
 
   team: {
     alignItems: 'center',
     flex: 1,
-  },
-
-  label: {
-    color: '#334030',
-    fontSize: 16,
-    padding: 5,
   },
 
   score: {
@@ -112,7 +138,15 @@ const styles = StyleSheet.create({
 
   divider: {
     width: 1,
+    height: 60,
     backgroundColor: '#6F8F68',
+  },
+
+  targetText: {
+    textAlign: 'center',
+    color: '#334030',
+    fontSize: 14,
+    marginBottom: 10,
   },
 
   table: {

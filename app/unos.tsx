@@ -9,103 +9,119 @@ import {
   View,
 } from 'react-native';
 
-type Team = 'mi' | 'vi';
+type Team='mi'|'vi';
 
-type Round = {
+type Round={
   id: number;
   mi: number;
   vi: number;
 };
 
-const PRIMARY = '#B7D5AF';
-const PRIMARY_55 = 'rgba(183,213,175,0.55)';
-const DARK = '#6F8F68';
-const TEXT = '#334030';
-const BG = '#F5F5F5';
-const WHITE = '#FFFFFF';
+const PRIMARY='#B7D5AF';
+const PRIMARY_55='rgba(183,213,175,0.55)';
+const DARK='#6F8F68';
+const TEXT='#334030';
+const BG='#F5F5F5';
+const WHITE='#FFFFFF';
 
-const ZVANJA = [20, 50, 100, 150, 200];
+const ZVANJA=[20,50,100,150,200];
 
 export default function UnosScreen() {
-  const router = useRouter();
-  const params = useLocalSearchParams<{ rounds?: string }>();
+  const router=useRouter();
+  const params=useLocalSearchParams<{rounds?: string; targetScore?: string}>();
 
-  const rounds: Round[] = params.rounds ? JSON.parse(params.rounds) : [];
+  const rounds: Round[]=params.rounds? JSON.parse(params.rounds):[];
+  const targetScore=Number(params.targetScore||1001);
 
-  const [activeTeam, setActiveTeam] = useState<Team>('mi');
-  const [calledTeam, setCalledTeam] = useState<Team | null>(null);
+  const [activeTeam,setActiveTeam]=useState<Team>('mi');
+  const [calledTeam,setCalledTeam]=useState<Team|null>(null);
 
-  const [mi, setMi] = useState('');
-  const [vi, setVi] = useState('');
+  const [mi,setMi]=useState('');
+  const [vi,setVi]=useState('');
 
-  const [zvanjaMi, setZvanjaMi] = useState<number[]>([]);
-  const [zvanjaVi, setZvanjaVi] = useState<number[]>([]);
-  const [stigljaTeam, setStigljaTeam] = useState<Team | null>(null);
+  const [zvanjaMi,setZvanjaMi]=useState<number[]>([]);
+  const [zvanjaVi,setZvanjaVi]=useState<number[]>([]);
+  const [stigljaTeam,setStigljaTeam]=useState<Team|null>(null);
 
-  const baseMi = Number(mi || 0);
-  const baseVi = Number(vi || 0);
+  const baseMi=Number(mi||0);
+  const baseVi=Number(vi||0);
 
-  const sumZvanjaMi = zvanjaMi.reduce((sum, value) => sum + value, 0);
-  const sumZvanjaVi = zvanjaVi.reduce((sum, value) => sum + value, 0);
+  const sumZvanjaMi=zvanjaMi.reduce((sum,value) => sum+value,0);
+  const sumZvanjaVi=zvanjaVi.reduce((sum,value) => sum+value,0);
 
-  const totalMi = baseMi + sumZvanjaMi + (stigljaTeam === 'mi' ? 90 : 0);
-  const totalVi = baseVi + sumZvanjaVi + (stigljaTeam === 'vi' ? 90 : 0);
+  const totalMi=baseMi+sumZvanjaMi+(stigljaTeam==='mi'? 90:0);
+  const totalVi=baseVi+sumZvanjaVi+(stigljaTeam==='vi'? 90:0);
 
-  const ukupnaIgra = 162 + sumZvanjaMi + sumZvanjaVi + (stigljaTeam ? 90 : 0);
-  const pragProlaza = Math.floor(ukupnaIgra / 2) + 1;
+  const ukupnaIgra=162+sumZvanjaMi+sumZvanjaVi+(stigljaTeam? 90:0);
+  const pragProlaza=Math.floor(ukupnaIgra/2)+1;
 
-  const currentValue = activeTeam === 'mi' ? mi : vi;
+  const currentValue=activeTeam==='mi'? mi:vi;
+  const activeZvanja=activeTeam==='mi'? zvanjaMi:zvanjaVi;
 
-  const addDigit = (digit: string) => {
-    const next = currentValue + digit;
-    if (next.length > 3) return;
+  const getZvanjeCount=(value: number) => {
+    return activeZvanja.filter(item => item===value).length;
+  };
 
-    const nextNumber = Number(next);
-    if (nextNumber > 162) return;
+  const addDigit=(digit: string) => {
+    const next=currentValue+digit;
+    if(next.length>3) return;
 
-    if (activeTeam === 'mi') {
+    const nextNumber=Number(next);
+    if(nextNumber>162) return;
+
+    if(activeTeam==='mi') {
       setMi(next);
-      setVi(String(162 - nextNumber));
+      setVi(String(162-nextNumber));
     } else {
       setVi(next);
-      setMi(String(162 - nextNumber));
+      setMi(String(162-nextNumber));
     }
   };
 
-  const removeDigit = () => {
-    const next = currentValue.slice(0, -1);
-    const nextNumber = Number(next || 0);
+  const removeDigit=() => {
+    const next=currentValue.slice(0,-1);
+    const nextNumber=Number(next||0);
 
-    if (activeTeam === 'mi') {
+    if(activeTeam==='mi') {
       setMi(next);
-      setVi(next === '' ? '' : String(162 - nextNumber));
+      setVi(next===''? '':String(162-nextNumber));
     } else {
       setVi(next);
-      setMi(next === '' ? '' : String(162 - nextNumber));
+      setMi(next===''? '':String(162-nextNumber));
     }
   };
 
-  const toggleZvanje = (value: number) => {
-    if (activeTeam === 'mi') {
-      setZvanjaMi(prev =>
-        prev.includes(value)
-          ? prev.filter(item => item !== value)
-          : [...prev, value]
-      );
+  const toggleZvanje=(value: number) => {
+    const updateZvanja=(prev: number[]) => {
+      const count=prev.filter(item => item===value).length;
+
+      if(count>=3) {
+        return prev.filter(item => item!==value);
+      }
+
+      return [...prev,value];
+    };
+
+    if(activeTeam==='mi') {
+      setZvanjaMi(updateZvanja);
     } else {
-      setZvanjaVi(prev =>
-        prev.includes(value)
-          ? prev.filter(item => item !== value)
-          : [...prev, value]
-      );
+      setZvanjaVi(updateZvanja);
     }
   };
 
-  const toggleStiglja = () => {
-    setStigljaTeam(prev => (prev === activeTeam ? null : activeTeam));
+  const resetZvanje=(value: number) => {
+    if(activeTeam==='mi') {
+      setZvanjaMi(prev => prev.filter(item => item!==value));
+    } else {
+      setZvanjaVi(prev => prev.filter(item => item!==value));
+    }
   };
 
-  const handleCancel = () => {
+  const toggleStiglja=() => {
+    setStigljaTeam(prev => (prev===activeTeam? null:activeTeam));
+  };
+
+  const handleCancel=() => {
     setMi('');
     setVi('');
     setZvanjaMi([]);
@@ -114,13 +130,13 @@ export default function UnosScreen() {
     setCalledTeam(null);
   };
 
-  const handleSubmit = () => {
-    if (!calledTeam) {
-      Alert.alert('Nedostaje podatak', 'Odaberi tko je zvao adut.');
+  const handleSubmit=() => {
+    if(!calledTeam) {
+      Alert.alert('Nedostaje podatak','Odaberi tko je zvao adut.');
       return;
     }
 
-    if (baseMi + baseVi !== 162) {
+    if(baseMi+baseVi!==162) {
       Alert.alert(
         'Neispravan unos',
         'Zbroj osnovnih bodova za MI i VI mora biti 162.'
@@ -128,7 +144,7 @@ export default function UnosScreen() {
       return;
     }
 
-    if (baseMi === 0 && sumZvanjaMi > 0) {
+    if(baseMi===0&&sumZvanjaMi>0) {
       Alert.alert(
         'Neispravan unos',
         'Zvanja se ne priznaju ekipi MI jer nije osvojila nijedan štih.'
@@ -136,7 +152,7 @@ export default function UnosScreen() {
       return;
     }
 
-    if (baseVi === 0 && sumZvanjaVi > 0) {
+    if(baseVi===0&&sumZvanjaVi>0) {
       Alert.alert(
         'Neispravan unos',
         'Zvanja se ne priznaju ekipi VI jer nije osvojila nijedan štih.'
@@ -144,23 +160,23 @@ export default function UnosScreen() {
       return;
     }
 
-    const calledScore = calledTeam === 'mi' ? totalMi : totalVi;
+    const calledScore=calledTeam==='mi'? totalMi:totalVi;
 
-    let finalMi = totalMi;
-    let finalVi = totalVi;
+    let finalMi=totalMi;
+    let finalVi=totalVi;
 
-    if (calledScore < pragProlaza) {
-      if (calledTeam === 'mi') {
-        finalMi = 0;
-        finalVi = ukupnaIgra;
+    if(calledScore<pragProlaza) {
+      if(calledTeam==='mi') {
+        finalMi=0;
+        finalVi=ukupnaIgra;
       } else {
-        finalMi = ukupnaIgra;
-        finalVi = 0;
+        finalMi=ukupnaIgra;
+        finalVi=0;
       }
     }
 
-    const newRound: Round = {
-      id: rounds.length + 1,
+    const newRound: Round={
+      id: rounds.length+1,
       mi: finalMi,
       vi: finalVi,
     };
@@ -168,12 +184,11 @@ export default function UnosScreen() {
     router.replace({
       pathname: '/rezultat',
       params: {
-        rounds: JSON.stringify([...rounds, newRound]),
+        rounds: JSON.stringify([...rounds,newRound]),
+        targetScore: String(targetScore),
       },
     });
   };
-
-  const activeZvanja = activeTeam === 'mi' ? zvanjaMi : zvanjaVi;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -186,23 +201,23 @@ export default function UnosScreen() {
           <TouchableOpacity
             style={[
               styles.teamCard,
-              activeTeam === 'mi' && styles.activeTeamCard,
+              activeTeam==='mi'&&styles.activeTeamCard,
             ]}
             onPress={() => setActiveTeam('mi')}
           >
             <Text style={styles.teamTitle}>MI</Text>
-            {totalMi > 0 && <Text style={styles.teamScore}>{totalMi}</Text>}
+            {totalMi>0&&<Text style={styles.teamScore}>{totalMi}</Text>}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.teamCard,
-              activeTeam === 'vi' && styles.activeTeamCard,
+              activeTeam==='vi'&&styles.activeTeamCard,
             ]}
             onPress={() => setActiveTeam('vi')}
           >
             <Text style={styles.teamTitle}>VI</Text>
-            {totalVi > 0 && <Text style={styles.teamScore}>{totalVi}</Text>}
+            {totalVi>0&&<Text style={styles.teamScore}>{totalVi}</Text>}
           </TouchableOpacity>
         </View>
 
@@ -213,14 +228,14 @@ export default function UnosScreen() {
             <TouchableOpacity
               style={[
                 styles.calledButton,
-                calledTeam === 'mi' && styles.calledButtonActive,
+                calledTeam==='mi'&&styles.calledButtonActive,
               ]}
               onPress={() => setCalledTeam('mi')}
             >
               <Text
                 style={[
                   styles.calledText,
-                  calledTeam === 'mi' && styles.calledTextActive,
+                  calledTeam==='mi'&&styles.calledTextActive,
                 ]}
               >
                 MI
@@ -230,14 +245,14 @@ export default function UnosScreen() {
             <TouchableOpacity
               style={[
                 styles.calledButton,
-                calledTeam === 'vi' && styles.calledButtonActive,
+                calledTeam==='vi'&&styles.calledButtonActive,
               ]}
               onPress={() => setCalledTeam('vi')}
             >
               <Text
                 style={[
                   styles.calledText,
-                  calledTeam === 'vi' && styles.calledTextActive,
+                  calledTeam==='vi'&&styles.calledTextActive,
                 ]}
               >
                 VI
@@ -247,28 +262,42 @@ export default function UnosScreen() {
         </View>
 
         <View style={styles.zvanjaGrid}>
-          {ZVANJA.map(value => (
-            <TouchableOpacity
-              key={value}
-              style={styles.zvanjeButton}
-              onPress={() => toggleZvanje(value)}
-            >
-              <Text
-                style={[
-                  styles.zvanjeText,
-                  activeZvanja.includes(value) && styles.selected,
-                ]}
+          {ZVANJA.map(value => {
+            const count=getZvanjeCount(value);
+
+            return (
+              <TouchableOpacity
+                key={value}
+                style={styles.zvanjeButton}
+                onPress={() => toggleZvanje(value)}
+                onLongPress={() => resetZvanje(value)}
+                delayLongPress={350}
               >
-                {value}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <View style={styles.zvanjeInner}>
+                  <Text
+                    style={[
+                      styles.zvanjeText,
+                      count>0&&styles.selected,
+                    ]}
+                  >
+                    {value}
+                  </Text>
+
+                  {count>0&&(
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{count}</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
 
           <TouchableOpacity style={styles.zvanjeButton} onPress={toggleStiglja}>
             <Text
               style={[
                 styles.zvanjeText,
-                stigljaTeam === activeTeam && styles.selected,
+                stigljaTeam===activeTeam&&styles.selected,
               ]}
             >
               štiglja
@@ -279,9 +308,9 @@ export default function UnosScreen() {
         <View style={styles.separator} />
 
         <View style={styles.keypad}>
-          {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ''].map(
-            (item, index) => {
-              if (item === '') {
+          {['1','2','3','4','5','6','7','8','9','','0','<'].map(
+            (item,index) => {
+              if(item==='') {
                 return <View key={`empty-${index}`} style={styles.key} />;
               }
 
@@ -290,7 +319,7 @@ export default function UnosScreen() {
                   key={`${item}-${index}`}
                   style={styles.key}
                   onPress={() =>
-                    item === '<' ? removeDigit() : addDigit(item)
+                    item==='<'? removeDigit():addDigit(item)
                   }
                 >
                   <Text style={styles.keyText}>{item}</Text>
@@ -314,7 +343,7 @@ export default function UnosScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles=StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: BG,
@@ -423,6 +452,13 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
 
+  zvanjeInner: {
+    position: 'relative',
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   zvanjeText: {
     fontSize: 20,
     color: TEXT,
@@ -432,6 +468,25 @@ const styles = StyleSheet.create({
 
   selected: {
     fontWeight: '900',
+  },
+
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: -16,
+    minWidth: 17,
+    height: 17,
+    borderRadius: 9,
+    backgroundColor: DARK,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+
+  badgeText: {
+    color: WHITE,
+    fontSize: 10,
+    fontWeight: '700',
   },
 
   separator: {
