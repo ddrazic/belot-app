@@ -28,10 +28,17 @@ const ZVANJA=[20,50,100,150,200];
 
 export default function UnosScreen() {
   const router=useRouter();
-  const params=useLocalSearchParams<{rounds?: string; targetScore?: string}>();
+  const params=useLocalSearchParams<{
+    rounds?: string;
+    targetScore?: string;
+    gamesMi?: string;
+    gamesVi?: string;
+  }>();
 
   const rounds: Round[]=params.rounds? JSON.parse(params.rounds):[];
   const targetScore=Number(params.targetScore||1001);
+  const gamesMi=Number(params.gamesMi||0);
+  const gamesVi=Number(params.gamesVi||0);
 
   const [activeTeam,setActiveTeam]=useState<Team>('mi');
   const [calledTeam,setCalledTeam]=useState<Team|null>(null);
@@ -186,6 +193,8 @@ export default function UnosScreen() {
       params: {
         rounds: JSON.stringify([...rounds,newRound]),
         targetScore: String(targetScore),
+        gamesMi: String(gamesMi),
+        gamesVi: String(gamesVi),
       },
     });
   };

@@ -14,20 +14,46 @@ export default function RezultatScreen() {
   const params = useLocalSearchParams<{
     rounds?: string;
     targetScore?: string;
+    gamesMi?: string;
+    gamesVi?: string;
   }>();
 
   const rounds: Round[] = params.rounds ? JSON.parse(params.rounds) : [];
   const targetScore = Number(params.targetScore || 1001);
+  const gamesMi = Number(params.gamesMi || 0);
+  const gamesVi = Number(params.gamesVi || 0);
 
   const totalMi = rounds.reduce((sum, round) => sum + round.mi, 0);
   const totalVi = rounds.reduce((sum, round) => sum + round.vi, 0);
+
+  const hasWinner = totalMi >= targetScore || totalVi >= targetScore;
+
+  let displayedRounds = rounds;
+  let displayedTotalMi = totalMi;
+  let displayedTotalVi = totalVi;
+  let displayedGamesMi = gamesMi;
+  let displayedGamesVi = gamesVi;
+
+  if (hasWinner) {
+    if (totalMi >= targetScore && totalMi >= totalVi) {
+      displayedGamesMi = gamesMi + 1;
+    } else if (totalVi >= targetScore && totalVi > totalMi) {
+      displayedGamesVi = gamesVi + 1;
+    }
+
+    displayedRounds = [];
+    displayedTotalMi = 0;
+    displayedTotalVi = 0;
+  }
 
   const goToInput = () => {
     router.push({
       pathname: '/unos',
       params: {
-        rounds: JSON.stringify(rounds),
+        rounds: JSON.stringify(displayedRounds),
         targetScore: String(targetScore),
+        gamesMi: String(displayedGamesMi),
+        gamesVi: String(displayedGamesVi),
       },
     });
   };
@@ -36,8 +62,10 @@ export default function RezultatScreen() {
     router.push({
       pathname: '/postavke',
       params: {
-        rounds: JSON.stringify(rounds),
+        rounds: JSON.stringify(displayedRounds),
         targetScore: String(targetScore),
+        gamesMi: String(displayedGamesMi),
+        gamesVi: String(displayedGamesVi),
       },
     });
   };
@@ -48,9 +76,25 @@ export default function RezultatScreen() {
       params: {
         rounds: JSON.stringify([]),
         targetScore: String(targetScore),
+        gamesMi: String(0),
+        gamesVi: String(0),
       },
     });
   };
+
+  if (hasWinner) {
+    setTimeout(() => {
+      router.replace({
+        pathname: '/rezultat',
+        params: {
+          rounds: JSON.stringify([]),
+          targetScore: String(targetScore),
+          gamesMi: String(displayedGamesMi),
+          gamesVi: String(displayedGamesVi),
+        },
+      });
+    }, 0);
+  }
 
   return (
     <View style={styles.container}>
@@ -60,15 +104,29 @@ export default function RezultatScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.gameScoreRow}>
+        <View style={styles.gameScoreBox}>
+          <Text style={styles.gameScoreLabel}>MI</Text>
+          <Text style={styles.gameScoreValue}>{displayedGamesMi}</Text>
+        </View>
+
+        <Text style={styles.gameScoreSeparator}>:</Text>
+
+        <View style={styles.gameScoreBox}>
+          <Text style={styles.gameScoreLabel}>VI</Text>
+          <Text style={styles.gameScoreValue}>{displayedGamesVi}</Text>
+        </View>
+      </View>
+
       <View style={styles.scoreCard}>
         <View style={styles.team}>
-          <Text style={styles.score}>{totalMi}</Text>
+          <Text style={styles.score}>{displayedTotalMi}</Text>
         </View>
 
         <View style={styles.divider} />
 
         <View style={styles.team}>
-          <Text style={styles.score}>{totalVi}</Text>
+          <Text style={styles.score}>{displayedTotalVi}</Text>
         </View>
       </View>
 
@@ -81,7 +139,7 @@ export default function RezultatScreen() {
         </View>
 
         <ScrollView>
-          {rounds.map(round => (
+          {displayedRounds.map(round => (
             <View key={round.id} style={styles.tableRow}>
               <Text style={styles.tableCell}>{round.mi}</Text>
               <Text style={styles.tableCell}>{round.vi}</Text>
@@ -112,6 +170,39 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingTop: 18,
     paddingHorizontal: 20,
+  },
+
+  gameScoreRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 6,
+  },
+
+  gameScoreBox: {
+    alignItems: 'center',
+    minWidth: 52,
+  },
+
+  gameScoreLabel: {
+    color: '#334030',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+
+  gameScoreValue: {
+    color: '#334030',
+    fontSize: 22,
+    fontWeight: '700',
+  },
+
+  gameScoreSeparator: {
+    color: '#334030',
+    fontSize: 22,
+    fontWeight: '600',
+    marginHorizontal: 8,
+    marginTop: 12,
   },
 
   scoreCard: {
