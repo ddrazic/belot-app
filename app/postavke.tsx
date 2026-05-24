@@ -7,8 +7,14 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-
-const OPTIONS=[501,701,1001];
+import {
+    DEFAULT_TARGET_SCORE,
+    DEFAULT_THEME,
+    GAME_OPTIONS,
+    ROUTES,
+    Theme,
+    THEMES,
+} from './constants/app_const';
 
 export default function PostavkeScreen() {
   const router=useRouter();
@@ -16,20 +22,33 @@ export default function PostavkeScreen() {
   const params=useLocalSearchParams<{
     rounds?: string;
     targetScore?: string;
+    gamesMi?: string;
+    gamesVi?: string;
+    theme?: Theme;
   }>();
 
   const rounds=params.rounds||'[]';
-  const targetScore=Number(params.targetScore||1001);
+  const targetScore=Number(params.targetScore||DEFAULT_TARGET_SCORE);
+  const gamesMi=params.gamesMi||'0';
+  const gamesVi=params.gamesVi||'0';
+  const theme=params.theme||DEFAULT_THEME;
 
-  const selectTargetScore=(score: number) => {
+  const COLORS=THEMES[theme];
+
+  const goBackWithSettings=(newTargetScore=targetScore,newTheme=theme) => {
     router.replace({
-      pathname: '/rezultat',
+      pathname: ROUTES.rezultat,
       params: {
         rounds,
-        targetScore: String(score),
+        targetScore: String(newTargetScore),
+        gamesMi,
+        gamesVi,
+        theme: newTheme,
       },
     });
   };
+
+  const styles=createStyles(COLORS);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -44,14 +63,14 @@ export default function PostavkeScreen() {
           <Text style={styles.label}>Igra do</Text>
 
           <View style={styles.selector}>
-            {OPTIONS.map(option => {
+            {GAME_OPTIONS.map(option => {
               const isActive=targetScore===option;
 
               return (
                 <TouchableOpacity
                   key={option}
                   style={[styles.option,isActive&&styles.activeOption]}
-                  onPress={() => selectTargetScore(option)}
+                  onPress={() => goBackWithSettings(option,theme)}
                 >
                   <Text
                     style={[
@@ -65,93 +84,125 @@ export default function PostavkeScreen() {
               );
             })}
           </View>
+        </View>
 
-          <Text style={styles.description}>
-            Odabrani broj bodova koristi se kao cilj igre.
-          </Text>
+        <View style={styles.card}>
+          <Text style={styles.label}>Način prikaza</Text>
+
+          <View style={styles.selector}>
+            <TouchableOpacity
+              style={[styles.option,theme==='light'&&styles.activeOption]}
+              onPress={() => goBackWithSettings(targetScore,'light')}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  theme==='light'&&styles.activeOptionText,
+                ]}
+              >
+                Svijetli
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.option,theme==='dark'&&styles.activeOption]}
+              onPress={() => goBackWithSettings(targetScore,'dark')}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  theme==='dark'&&styles.activeOptionText,
+                ]}
+              >
+                Tamni
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </SafeAreaView>
   );
 }
 
-const styles=StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
+const createStyles=(COLORS: typeof THEMES.light) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
 
-  backButton: {
-    paddingTop: 14,
-    paddingLeft: 22,
-    paddingBottom: 8,
-  },
+    backButton: {
+      paddingTop: 14,
+      paddingLeft: 22,
+      paddingBottom: 8,
+    },
 
-  back: {
-    fontSize: 28,
-    color: '#334030',
-  },
+    back: {
+      fontSize: 28,
+      color: COLORS.text,
+    },
 
-  content: {
-    flex: 1,
-    paddingHorizontal: 22,
-    paddingTop: 6,
-  },
+    content: {
+      flex: 1,
+      paddingHorizontal: 22,
+      paddingTop: 6,
+    },
 
-  title: {
-    fontSize: 28,
-    color: '#334030',
-    fontWeight: '600',
-    marginBottom: 24,
-  },
+    title: {
+      fontSize: 28,
+      color: COLORS.text,
+      fontWeight: '600',
+      marginBottom: 24,
+    },
 
-  card: {
-    backgroundColor: 'rgba(183,213,175,0.55)',
-    borderRadius: 20,
-    padding: 18,
-  },
+    card: {
+      backgroundColor: COLORS.primaryTransparent,
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 18,
+    },
 
-  label: {
-    fontSize: 16,
-    color: '#334030',
-    fontWeight: '600',
-    marginBottom: 12,
-  },
+    label: {
+      fontSize: 16,
+      color: COLORS.text,
+      fontWeight: '600',
+      marginBottom: 12,
+    },
 
-  selector: {
-    flexDirection: 'row',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 14,
-    padding: 5,
-  },
+    selector: {
+      flexDirection: 'row',
+      backgroundColor: COLORS.background,
+      borderRadius: 14,
+      padding: 5,
+    },
 
-  option: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 11,
-  },
+    option: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
+      borderRadius: 11,
+    },
 
-  activeOption: {
-    backgroundColor: '#6F8F68',
-  },
+    activeOption: {
+      backgroundColor: COLORS.dark,
+    },
 
-  optionText: {
-    color: '#334030',
-    fontSize: 18,
-    fontWeight: '700',
-  },
+    optionText: {
+      color: COLORS.text,
+      fontSize: 16,
+      fontWeight: '700',
+    },
 
-  activeOptionText: {
-    color: '#FFFFFF',
-  },
+    activeOptionText: {
+      color: COLORS.white,
+    },
 
-  description: {
-    marginTop: 14,
-    color: '#334030',
-    fontSize: 13,
-    lineHeight: 18,
-    opacity: 0.75,
-  },
-});
+    description: {
+      marginTop: 14,
+      color: COLORS.text,
+      fontSize: 13,
+      lineHeight: 18,
+      opacity: 0.75,
+    },
+  });

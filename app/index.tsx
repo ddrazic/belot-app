@@ -1,15 +1,16 @@
 import {useRouter} from 'expo-router';
 import {Image,StyleSheet,Text,TouchableOpacity,View} from 'react-native';
+import {INITIAL_GAME_STATE,ROUTES,THEMES} from './constants/app_const';
+
+const COLORS=THEMES.light;
 
 export default function HomeScreen() {
-  const router = useRouter();
+  const router=useRouter();
 
-  const startGame = () => {
+  const startGame=() => {
     router.push({
-      pathname: '/rezultat',
-      params: {
-        rounds: JSON.stringify([]),
-      },
+      pathname: ROUTES.rezultat,
+      params: INITIAL_GAME_STATE,
     });
   };
 
@@ -31,36 +32,41 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles=StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#B7D5AF',
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   title: {
     fontSize: 40,
-    color: '#334030',
+    color: COLORS.text,
     fontWeight: '600',
   },
+
   subtitle: {
     fontSize: 28,
-    color: '#334030',
+    color: COLORS.text,
     marginBottom: 20,
   },
+
   image: {
     width: 250,
     height: 180,
     marginVertical: 30,
   },
+
   button: {
-    backgroundColor: '#6F8F68',
+    backgroundColor: COLORS.dark,
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 15,
   },
+
   buttonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
   },

@@ -8,37 +8,36 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-type Team='mi'|'vi';
-
-type Round={
-  id: number;
-  mi: number;
-  vi: number;
-};
-
-const PRIMARY='#B7D5AF';
-const PRIMARY_55='rgba(183,213,175,0.55)';
-const DARK='#6F8F68';
-const TEXT='#334030';
-const BG='#F5F5F5';
-const WHITE='#FFFFFF';
-
-const ZVANJA=[20,50,100,150,200];
+import {
+  DEFAULT_TARGET_SCORE,
+  DEFAULT_THEME,
+  Round,
+  ROUTES,
+  Team,
+  Theme,
+  THEMES,
+  ZVANJA,
+} from './constants/app_const';
 
 export default function UnosScreen() {
   const router=useRouter();
-  const params=useLocalSearchParams<{
-    rounds?: string;
-    targetScore?: string;
-    gamesMi?: string;
-    gamesVi?: string;
-  }>();
 
-  const rounds: Round[]=params.rounds? JSON.parse(params.rounds):[];
-  const targetScore=Number(params.targetScore||1001);
-  const gamesMi=Number(params.gamesMi||0);
-  const gamesVi=Number(params.gamesVi||0);
+const params=useLocalSearchParams<{
+  rounds?: string;
+  targetScore?: string;
+  gamesMi?: string;
+  gamesVi?: string;
+  theme?: Theme;
+}>();
+
+const rounds: Round[]=params.rounds?JSON.parse(params.rounds):[];
+const targetScore=Number(params.targetScore||DEFAULT_TARGET_SCORE);
+const gamesMi=Number(params.gamesMi||0);
+const gamesVi=Number(params.gamesVi||0);
+const theme=params.theme||DEFAULT_THEME;
+
+const COLORS=THEMES[theme];
+const styles=createStyles(COLORS);
 
   const [activeTeam,setActiveTeam]=useState<Team>('mi');
   const [calledTeam,setCalledTeam]=useState<Team|null>(null);
@@ -56,21 +55,22 @@ export default function UnosScreen() {
   const sumZvanjaMi=zvanjaMi.reduce((sum,value) => sum+value,0);
   const sumZvanjaVi=zvanjaVi.reduce((sum,value) => sum+value,0);
 
-  const totalMi=baseMi+sumZvanjaMi+(stigljaTeam==='mi'? 90:0);
-  const totalVi=baseVi+sumZvanjaVi+(stigljaTeam==='vi'? 90:0);
+  const totalMi=baseMi+sumZvanjaMi+(stigljaTeam==='mi'?90:0);
+  const totalVi=baseVi+sumZvanjaVi+(stigljaTeam==='vi'?90:0);
 
-  const ukupnaIgra=162+sumZvanjaMi+sumZvanjaVi+(stigljaTeam? 90:0);
+  const ukupnaIgra=162+sumZvanjaMi+sumZvanjaVi+(stigljaTeam?90:0);
   const pragProlaza=Math.floor(ukupnaIgra/2)+1;
 
-  const currentValue=activeTeam==='mi'? mi:vi;
-  const activeZvanja=activeTeam==='mi'? zvanjaMi:zvanjaVi;
+  const currentValue=activeTeam==='mi'?mi:vi;
+  const activeZvanja=activeTeam==='mi'?zvanjaMi:zvanjaVi;
 
-  const getZvanjeCount=(value: number) => {
+  const getZvanjeCount=(value:number) => {
     return activeZvanja.filter(item => item===value).length;
   };
 
-  const addDigit=(digit: string) => {
+  const addDigit=(digit:string) => {
     const next=currentValue+digit;
+
     if(next.length>3) return;
 
     const nextNumber=Number(next);
@@ -91,15 +91,15 @@ export default function UnosScreen() {
 
     if(activeTeam==='mi') {
       setMi(next);
-      setVi(next===''? '':String(162-nextNumber));
+      setVi(next===''?'':String(162-nextNumber));
     } else {
       setVi(next);
-      setMi(next===''? '':String(162-nextNumber));
+      setMi(next===''?'':String(162-nextNumber));
     }
   };
 
-  const toggleZvanje=(value: number) => {
-    const updateZvanja=(prev: number[]) => {
+  const toggleZvanje=(value:number) => {
+    const updateZvanja=(prev:number[]) => {
       const count=prev.filter(item => item===value).length;
 
       if(count>=3) {
@@ -116,7 +116,7 @@ export default function UnosScreen() {
     }
   };
 
-  const resetZvanje=(value: number) => {
+  const resetZvanje=(value:number) => {
     if(activeTeam==='mi') {
       setZvanjaMi(prev => prev.filter(item => item!==value));
     } else {
@@ -125,7 +125,7 @@ export default function UnosScreen() {
   };
 
   const toggleStiglja=() => {
-    setStigljaTeam(prev => (prev===activeTeam? null:activeTeam));
+    setStigljaTeam(prev => (prev===activeTeam?null:activeTeam));
   };
 
   const handleCancel=() => {
@@ -137,10 +137,10 @@ export default function UnosScreen() {
     setCalledTeam(null);
   };
 
-  const handleSubmit=() => {
+  const validateInput=() => {
     if(!calledTeam) {
       Alert.alert('Nedostaje podatak','Odaberi tko je zvao adut.');
-      return;
+      return false;
     }
 
     if(baseMi+baseVi!==162) {
@@ -148,7 +148,7 @@ export default function UnosScreen() {
         'Neispravan unos',
         'Zbroj osnovnih bodova za MI i VI mora biti 162.'
       );
-      return;
+      return false;
     }
 
     if(baseMi===0&&sumZvanjaMi>0) {
@@ -156,7 +156,7 @@ export default function UnosScreen() {
         'Neispravan unos',
         'Zvanja se ne priznaju ekipi MI jer nije osvojila nijedan štih.'
       );
-      return;
+      return false;
     }
 
     if(baseVi===0&&sumZvanjaVi>0) {
@@ -164,10 +164,14 @@ export default function UnosScreen() {
         'Neispravan unos',
         'Zvanja se ne priznaju ekipi VI jer nije osvojila nijedan štih.'
       );
-      return;
+      return false;
     }
 
-    const calledScore=calledTeam==='mi'? totalMi:totalVi;
+    return true;
+  };
+
+  const calculateFinalScore=() => {
+    const calledScore=calledTeam==='mi'?totalMi:totalVi;
 
     let finalMi=totalMi;
     let finalVi=totalVi;
@@ -182,19 +186,28 @@ export default function UnosScreen() {
       }
     }
 
-    const newRound: Round={
+    return {finalMi,finalVi};
+  };
+
+  const handleSubmit=() => {
+    if(!validateInput()) return;
+
+    const {finalMi,finalVi}=calculateFinalScore();
+
+    const newRound:Round={
       id: rounds.length+1,
       mi: finalMi,
       vi: finalVi,
     };
 
     router.replace({
-      pathname: '/rezultat',
+      pathname: ROUTES.rezultat,
       params: {
         rounds: JSON.stringify([...rounds,newRound]),
         targetScore: String(targetScore),
         gamesMi: String(gamesMi),
         gamesVi: String(gamesVi),
+        theme,
       },
     });
   };
@@ -327,9 +340,7 @@ export default function UnosScreen() {
                 <TouchableOpacity
                   key={`${item}-${index}`}
                   style={styles.key}
-                  onPress={() =>
-                    item==='<'? removeDigit():addDigit(item)
-                  }
+                  onPress={() => item==='<'?removeDigit():addDigit(item)}
                 >
                   <Text style={styles.keyText}>{item}</Text>
                 </TouchableOpacity>
@@ -352,10 +363,11 @@ export default function UnosScreen() {
   );
 }
 
-const styles=StyleSheet.create({
+const createStyles=(COLORS: typeof THEMES.light) =>
+  StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: COLORS.background,
   },
 
   backButton: {
@@ -366,7 +378,7 @@ const styles=StyleSheet.create({
 
   back: {
     fontSize: 28,
-    color: TEXT,
+    color: COLORS.text,
   },
 
   content: {
@@ -383,7 +395,7 @@ const styles=StyleSheet.create({
   teamCard: {
     width: '48%',
     height: 78,
-    backgroundColor: PRIMARY_55,
+    backgroundColor: COLORS.primaryTransparent,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -391,18 +403,18 @@ const styles=StyleSheet.create({
 
   activeTeamCard: {
     borderWidth: 2,
-    borderColor: DARK,
+    borderColor: COLORS.dark,
   },
 
   teamTitle: {
     fontSize: 19,
-    color: TEXT,
+    color: COLORS.text,
     fontWeight: '500',
   },
 
   teamScore: {
     fontSize: 28,
-    color: TEXT,
+    color: COLORS.text,
     fontWeight: '700',
   },
 
@@ -412,7 +424,7 @@ const styles=StyleSheet.create({
   },
 
   calledLabel: {
-    color: TEXT,
+    color: COLORS.text,
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 7,
@@ -427,18 +439,18 @@ const styles=StyleSheet.create({
     minWidth: 58,
     paddingVertical: 6,
     borderRadius: 10,
-    backgroundColor: PRIMARY_55,
+    backgroundColor: COLORS.primaryTransparent,
     alignItems: 'center',
   },
 
   calledButtonActive: {
-    backgroundColor: PRIMARY,
+    backgroundColor: COLORS.primary,
     borderWidth: 1,
-    borderColor: DARK,
+    borderColor: COLORS.dark,
   },
 
   calledText: {
-    color: TEXT,
+    color: COLORS.text,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -470,7 +482,7 @@ const styles=StyleSheet.create({
 
   zvanjeText: {
     fontSize: 20,
-    color: TEXT,
+    color: COLORS.text,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -486,21 +498,21 @@ const styles=StyleSheet.create({
     minWidth: 17,
     height: 17,
     borderRadius: 9,
-    backgroundColor: DARK,
+    backgroundColor: COLORS.dark,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
 
   badgeText: {
-    color: WHITE,
+    color: COLORS.white,
     fontSize: 10,
     fontWeight: '700',
   },
 
   separator: {
     height: 1,
-    backgroundColor: PRIMARY_55,
+    backgroundColor: COLORS.primaryTransparent,
     marginBottom: 22,
   },
 
@@ -520,7 +532,7 @@ const styles=StyleSheet.create({
   },
 
   keyText: {
-    color: DARK,
+    color: COLORS.dark,
     fontSize: 32,
     fontWeight: '500',
   },
@@ -532,28 +544,28 @@ const styles=StyleSheet.create({
 
   cancelButton: {
     width: '39%',
-    backgroundColor: WHITE,
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: PRIMARY,
+    borderColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   submitButton: {
     width: '61%',
-    backgroundColor: DARK,
+    backgroundColor: COLORS.dark,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   cancelText: {
-    color: DARK,
+    color: COLORS.dark,
     fontSize: 16,
     fontWeight: '700',
   },
 
   submitText: {
-    color: WHITE,
+    color: COLORS.white,
     fontSize: 17,
     fontWeight: '700',
   },

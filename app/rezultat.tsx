@@ -1,122 +1,118 @@
 import {Ionicons} from '@expo/vector-icons';
 import {useLocalSearchParams,useRouter} from 'expo-router';
 import {Alert,ScrollView,StyleSheet,Text,TouchableOpacity,View} from 'react-native';
-
-type Round = {
-  id: number;
-  mi: number;
-  vi: number;
-};
+import {
+  DEFAULT_TARGET_SCORE,
+  DEFAULT_THEME,
+  Round,
+  ROUTES,
+  Theme,
+  THEMES,
+} from './constants/app_const';
 
 export default function RezultatScreen() {
-  const router = useRouter();
+  const router=useRouter();
 
-  const params = useLocalSearchParams<{
+  const params=useLocalSearchParams<{
     rounds?: string;
     targetScore?: string;
     gamesMi?: string;
     gamesVi?: string;
+    theme?: Theme;
   }>();
 
-  const rounds: Round[] = params.rounds ? JSON.parse(params.rounds) : [];
-  const targetScore = Number(params.targetScore || 1001);
-  const gamesMi = Number(params.gamesMi || 0);
-  const gamesVi = Number(params.gamesVi || 0);
+  const rounds: Round[]=params.rounds?JSON.parse(params.rounds):[];
+  const targetScore=Number(params.targetScore||DEFAULT_TARGET_SCORE);
+  const gamesMi=Number(params.gamesMi||0);
+  const gamesVi=Number(params.gamesVi||0);
+  const theme=params.theme||DEFAULT_THEME;
 
-  const totalMi = rounds.reduce((sum, round) => sum + round.mi, 0);
-  const totalVi = rounds.reduce((sum, round) => sum + round.vi, 0);
+  const COLORS=THEMES[theme];
+  const styles=createStyles(COLORS);
 
-  const hasWinner = totalMi >= targetScore || totalVi >= targetScore;
+  const totalMi=rounds.reduce((sum,round) => sum+round.mi,0);
+  const totalVi=rounds.reduce((sum,round) => sum+round.vi,0);
 
-  let displayedRounds = rounds;
-  let displayedTotalMi = totalMi;
-  let displayedTotalVi = totalVi;
-  let displayedGamesMi = gamesMi;
-  let displayedGamesVi = gamesVi;
+  const hasWinner=totalMi>=targetScore||totalVi>=targetScore;
 
-  if (hasWinner) {
-    if (totalMi >= targetScore && totalMi >= totalVi) {
-      displayedGamesMi = gamesMi + 1;
-    } else if (totalVi >= targetScore && totalVi > totalMi) {
-      displayedGamesVi = gamesVi + 1;
+  let displayedRounds=rounds;
+  let displayedTotalMi=totalMi;
+  let displayedTotalVi=totalVi;
+  let displayedGamesMi=gamesMi;
+  let displayedGamesVi=gamesVi;
+
+  if(hasWinner) {
+    if(totalMi>=targetScore&&totalMi>=totalVi) {
+      displayedGamesMi=gamesMi+1;
+    } else if(totalVi>=targetScore&&totalVi>totalMi) {
+      displayedGamesVi=gamesVi+1;
     }
 
-    displayedRounds = [];
-    displayedTotalMi = 0;
-    displayedTotalVi = 0;
+    displayedRounds=[];
+    displayedTotalMi=0;
+    displayedTotalVi=0;
   }
 
-  const goToInput = () => {
+  const getNavigationParams=() => ({
+    rounds: JSON.stringify(displayedRounds),
+    targetScore: String(targetScore),
+    gamesMi: String(displayedGamesMi),
+    gamesVi: String(displayedGamesVi),
+    theme,
+  });
+
+  const goToInput=() => {
     router.push({
-      pathname: '/unos',
+      pathname: ROUTES.unos,
+      params: getNavigationParams(),
+    });
+  };
+
+  const goToSettings=() => {
+    router.push({
+      pathname: ROUTES.postavke,
+      params: getNavigationParams(),
+    });
+  };
+
+  const resetGame=() => {
+    router.replace({
+      pathname: ROUTES.rezultat,
       params: {
-        rounds: JSON.stringify(displayedRounds),
+        rounds: JSON.stringify([]),
         targetScore: String(targetScore),
-        gamesMi: String(displayedGamesMi),
-        gamesVi: String(displayedGamesVi),
+        gamesMi: '0',
+        gamesVi: '0',
+        theme,
       },
     });
   };
 
-  const goToSettings = () => {
-    router.push({
-      pathname: '/postavke',
-      params: {
-        rounds: JSON.stringify(displayedRounds),
-        targetScore: String(targetScore),
-        gamesMi: String(displayedGamesMi),
-        gamesVi: String(displayedGamesVi),
-      },
-    });
+  const newGame=() => {
+    Alert.alert(
+      'Nova igra',
+      'Jeste li sigurni da želite započeti novu igru?',
+      [
+        {text: 'Odustani',style: 'cancel'},
+        {text: 'Započni',style: 'destructive',onPress: resetGame},
+      ]
+    );
   };
 
-const newGame = () => {
-  Alert.alert(
-    'Nova igra',
-    'Jeste li sigurni da želite započeti novu igru?',
-    [
-      {
-        text: 'Odustani',
-        style: 'cancel',
-      },
-      {
-        text: 'Započni',
-        style: 'destructive',
-        onPress: () => {
-          router.replace({
-            pathname: '/rezultat',
-            params: {
-              rounds: JSON.stringify([]),
-              targetScore: String(targetScore),
-              gamesMi: String(0),
-              gamesVi: String(0),
-            },
-          });
-        },
-      },
-    ]
-  );
-};
-
-  if (hasWinner) {
+  if(hasWinner) {
     setTimeout(() => {
       router.replace({
-        pathname: '/rezultat',
-        params: {
-          rounds: JSON.stringify([]),
-          targetScore: String(targetScore),
-          gamesMi: String(displayedGamesMi),
-          gamesVi: String(displayedGamesVi),
-        },
+        pathname: ROUTES.rezultat,
+        params: getNavigationParams(),
       });
-    }, 0);
+    },0);
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={goToSettings}>
-          <Ionicons name="settings-outline" size={26} color="#334030" />
+          <Ionicons name="settings-outline" size={26} color={COLORS.text} />
         </TouchableOpacity>
       </View>
 
@@ -175,147 +171,148 @@ const newGame = () => {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
+const createStyles=(COLORS: typeof THEMES.light) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
 
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingTop: 18,
-    paddingHorizontal: 20,
-  },
+    topBar: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingTop: 18,
+      paddingHorizontal: 20,
+    },
 
-  gameScoreRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 6,
-  },
+    gameScoreRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 4,
+      marginBottom: 6,
+    },
 
-  gameScoreBox: {
-    alignItems: 'center',
-    minWidth: 52,
-  },
+    gameScoreBox: {
+      alignItems: 'center',
+      minWidth: 52,
+    },
 
-  gameScoreLabel: {
-    color: '#334030',
-    fontSize: 12,
-    fontWeight: '500',
-  },
+    gameScoreLabel: {
+      color: COLORS.text,
+      fontSize: 12,
+      fontWeight: '500',
+    },
 
-  gameScoreValue: {
-    color: '#334030',
-    fontSize: 22,
-    fontWeight: '700',
-  },
+    gameScoreValue: {
+      color: COLORS.text,
+      fontSize: 22,
+      fontWeight: '700',
+    },
 
-  gameScoreSeparator: {
-    color: '#334030',
-    fontSize: 22,
-    fontWeight: '600',
-    marginHorizontal: 8,
-    marginTop: 12,
-  },
+    gameScoreSeparator: {
+      color: COLORS.text,
+      fontSize: 22,
+      fontWeight: '600',
+      marginHorizontal: 8,
+      marginTop: 12,
+    },
 
-  scoreCard: {
-    backgroundColor: 'rgba(183,213,175,0.55)',
-    marginHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 8,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 25,
-  },
+    scoreCard: {
+      backgroundColor: COLORS.primaryTransparent,
+      marginHorizontal: 20,
+      marginTop: 8,
+      marginBottom: 8,
+      borderRadius: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 25,
+    },
 
-  team: {
-    alignItems: 'center',
-    flex: 1,
-  },
+    team: {
+      alignItems: 'center',
+      flex: 1,
+    },
 
-  score: {
-    fontSize: 40,
-    color: '#334030',
-    fontWeight: '600',
-  },
+    score: {
+      fontSize: 40,
+      color: COLORS.text,
+      fontWeight: '600',
+    },
 
-  divider: {
-    width: 1,
-    height: 60,
-    backgroundColor: '#6F8F68',
-  },
+    divider: {
+      width: 1,
+      height: 60,
+      backgroundColor: COLORS.dark,
+    },
 
-  targetText: {
-    textAlign: 'center',
-    color: '#334030',
-    fontSize: 14,
-    marginBottom: 10,
-  },
+    targetText: {
+      textAlign: 'center',
+      color: COLORS.text,
+      fontSize: 14,
+      marginBottom: 10,
+    },
 
-  table: {
-    flex: 1,
-    marginHorizontal: 20,
-    marginBottom: 10,
-  },
+    table: {
+      flex: 1,
+      marginHorizontal: 20,
+      marginBottom: 10,
+    },
 
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#B7D5AF',
-    paddingVertical: 10,
-  },
+    tableHeader: {
+      flexDirection: 'row',
+      backgroundColor: COLORS.primary,
+      paddingVertical: 10,
+    },
 
-  headerCell: {
-    flex: 1,
-    textAlign: 'center',
-    color: '#334030',
-    fontSize: 18,
-    fontWeight: '700',
-  },
+    headerCell: {
+      flex: 1,
+      textAlign: 'center',
+      color: COLORS.text,
+      fontSize: 18,
+      fontWeight: '700',
+    },
 
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(111,143,104,0.25)',
-    paddingVertical: 10,
-  },
+    tableRow: {
+      flexDirection: 'row',
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.border,
+      paddingVertical: 10,
+    },
 
-  tableCell: {
-    flex: 1,
-    textAlign: 'center',
-    color: '#334030',
-    fontSize: 20,
-  },
+    tableCell: {
+      flex: 1,
+      textAlign: 'center',
+      color: COLORS.text,
+      fontSize: 20,
+    },
 
-  addButton: {
-    backgroundColor: '#6F8F68',
-    padding: 25,
-    alignItems: 'center',
-  },
+    addButton: {
+      backgroundColor: COLORS.dark,
+      padding: 25,
+      alignItems: 'center',
+    },
 
-  addText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 20,
-  },
+    addText: {
+      color: COLORS.white,
+      fontWeight: '600',
+      fontSize: 20,
+    },
 
-  newGame: {
-    alignSelf: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#6F8F68',
-    backgroundColor: '#fff',
-  },
+    newGame: {
+      alignSelf: 'center',
+      marginTop: 10,
+      marginBottom: 20,
+      paddingVertical: 10,
+      paddingHorizontal: 30,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: COLORS.dark,
+      backgroundColor: COLORS.white,
+    },
 
-  newGameText: {
-    color: '#334030',
-    fontWeight: '500',
-  },
-});
+    newGameText: {
+      color: COLORS.text,
+      fontWeight: '500',
+    },
+  });
