@@ -1,6 +1,6 @@
 import {Ionicons} from '@expo/vector-icons';
 import {useLocalSearchParams,useRouter} from 'expo-router';
-import {ScrollView,StyleSheet,Text,TouchableOpacity,View} from 'react-native';
+import {Alert,ScrollView,StyleSheet,Text,TouchableOpacity,View} from 'react-native';
 
 type Round = {
   id: number;
@@ -70,17 +70,33 @@ export default function RezultatScreen() {
     });
   };
 
-  const newGame = () => {
-    router.replace({
-      pathname: '/rezultat',
-      params: {
-        rounds: JSON.stringify([]),
-        targetScore: String(targetScore),
-        gamesMi: String(0),
-        gamesVi: String(0),
+const newGame = () => {
+  Alert.alert(
+    'Nova igra',
+    'Jeste li sigurni da želite započeti novu igru?',
+    [
+      {
+        text: 'Odustani',
+        style: 'cancel',
       },
-    });
-  };
+      {
+        text: 'Započni',
+        style: 'destructive',
+        onPress: () => {
+          router.replace({
+            pathname: '/rezultat',
+            params: {
+              rounds: JSON.stringify([]),
+              targetScore: String(targetScore),
+              gamesMi: String(0),
+              gamesVi: String(0),
+            },
+          });
+        },
+      },
+    ]
+  );
+};
 
   if (hasWinner) {
     setTimeout(() => {
