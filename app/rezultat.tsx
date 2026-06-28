@@ -1,6 +1,15 @@
 import {Ionicons} from '@expo/vector-icons';
 import {useLocalSearchParams,useRouter} from 'expo-router';
-import {Alert,ScrollView,StyleSheet,Text,TouchableOpacity,View} from 'react-native';
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {SafeAreaView,useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
   DEFAULT_TARGET_SCORE,
   DEFAULT_THEME,
@@ -12,6 +21,7 @@ import {
 
 export default function RezultatScreen() {
   const router=useRouter();
+  const insets=useSafeAreaInsets();
 
   const params=useLocalSearchParams<{
     rounds?: string;
@@ -21,14 +31,14 @@ export default function RezultatScreen() {
     theme?: Theme;
   }>();
 
-  const rounds: Round[]=params.rounds?JSON.parse(params.rounds):[];
+  const rounds: Round[]=params.rounds? JSON.parse(params.rounds):[];
   const targetScore=Number(params.targetScore||DEFAULT_TARGET_SCORE);
   const gamesMi=Number(params.gamesMi||0);
   const gamesVi=Number(params.gamesVi||0);
   const theme=params.theme||DEFAULT_THEME;
 
   const COLORS=THEMES[theme];
-  const styles=createStyles(COLORS);
+  const styles=createStyles(COLORS,insets.bottom);
 
   const totalMi=rounds.reduce((sum,round) => sum+round.mi,0);
   const totalVi=rounds.reduce((sum,round) => sum+round.vi,0);
@@ -109,7 +119,7 @@ export default function RezultatScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={goToSettings}>
           <Ionicons name="settings-outline" size={26} color={COLORS.text} />
@@ -167,12 +177,14 @@ export default function RezultatScreen() {
       <TouchableOpacity style={styles.newGame} onPress={newGame}>
         <Text style={styles.newGameText}>NOVA IGRA</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
-const createStyles=(COLORS: typeof THEMES.light) =>
-  StyleSheet.create({
+const createStyles=(COLORS: typeof THEMES.light,bottomInset: number) => {
+  const isAndroid=Platform.OS==='android';
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: COLORS.background,
@@ -181,7 +193,7 @@ const createStyles=(COLORS: typeof THEMES.light) =>
     topBar: {
       flexDirection: 'row',
       justifyContent: 'flex-end',
-      paddingTop: 18,
+      paddingTop: isAndroid? 6:18,
       paddingHorizontal: 20,
     },
 
@@ -226,7 +238,7 @@ const createStyles=(COLORS: typeof THEMES.light) =>
       borderRadius: 20,
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 25,
+      paddingVertical: isAndroid? 20:25,
     },
 
     team: {
@@ -256,7 +268,7 @@ const createStyles=(COLORS: typeof THEMES.light) =>
     table: {
       flex: 1,
       marginHorizontal: 20,
-      marginBottom: 10,
+      marginBottom: isAndroid? 6:10,
     },
 
     tableHeader: {
@@ -289,7 +301,7 @@ const createStyles=(COLORS: typeof THEMES.light) =>
 
     addButton: {
       backgroundColor: COLORS.dark,
-      padding: 25,
+      padding: isAndroid? 21:25,
       alignItems: 'center',
     },
 
@@ -301,8 +313,8 @@ const createStyles=(COLORS: typeof THEMES.light) =>
 
     newGame: {
       alignSelf: 'center',
-      marginTop: 10,
-      marginBottom: 20,
+      marginTop: isAndroid? 8:10,
+      marginBottom: isAndroid? 4:10,
       paddingVertical: 10,
       paddingHorizontal: 30,
       borderRadius: 20,
@@ -316,3 +328,4 @@ const createStyles=(COLORS: typeof THEMES.light) =>
       fontWeight: '500',
     },
   });
+};

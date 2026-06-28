@@ -2,12 +2,13 @@ import {useLocalSearchParams,useRouter} from 'expo-router';
 import React,{useState} from 'react';
 import {
   Alert,
-  SafeAreaView,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import {SafeAreaView,useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
   DEFAULT_TARGET_SCORE,
   DEFAULT_THEME,
@@ -21,30 +22,29 @@ import {
 
 export default function UnosScreen() {
   const router=useRouter();
+  const insets=useSafeAreaInsets();
 
-const params=useLocalSearchParams<{
-  rounds?: string;
-  targetScore?: string;
-  gamesMi?: string;
-  gamesVi?: string;
-  theme?: Theme;
-}>();
+  const params=useLocalSearchParams<{
+    rounds?: string;
+    targetScore?: string;
+    gamesMi?: string;
+    gamesVi?: string;
+    theme?: Theme;
+  }>();
 
-const rounds: Round[]=params.rounds?JSON.parse(params.rounds):[];
-const targetScore=Number(params.targetScore||DEFAULT_TARGET_SCORE);
-const gamesMi=Number(params.gamesMi||0);
-const gamesVi=Number(params.gamesVi||0);
-const theme=params.theme||DEFAULT_THEME;
+  const rounds: Round[]=params.rounds? JSON.parse(params.rounds):[];
+  const targetScore=Number(params.targetScore||DEFAULT_TARGET_SCORE);
+  const gamesMi=Number(params.gamesMi||0);
+  const gamesVi=Number(params.gamesVi||0);
+  const theme=params.theme||DEFAULT_THEME;
 
-const COLORS=THEMES[theme];
-const styles=createStyles(COLORS);
+  const COLORS=THEMES[theme];
+  const styles=createStyles(COLORS,insets.bottom);
 
   const [activeTeam,setActiveTeam]=useState<Team>('mi');
   const [calledTeam,setCalledTeam]=useState<Team|null>(null);
-
   const [mi,setMi]=useState('');
   const [vi,setVi]=useState('');
-
   const [zvanjaMi,setZvanjaMi]=useState<number[]>([]);
   const [zvanjaVi,setZvanjaVi]=useState<number[]>([]);
   const [stigljaTeam,setStigljaTeam]=useState<Team|null>(null);
@@ -55,22 +55,21 @@ const styles=createStyles(COLORS);
   const sumZvanjaMi=zvanjaMi.reduce((sum,value) => sum+value,0);
   const sumZvanjaVi=zvanjaVi.reduce((sum,value) => sum+value,0);
 
-  const totalMi=baseMi+sumZvanjaMi+(stigljaTeam==='mi'?90:0);
-  const totalVi=baseVi+sumZvanjaVi+(stigljaTeam==='vi'?90:0);
+  const totalMi=baseMi+sumZvanjaMi+(stigljaTeam==='mi'? 90:0);
+  const totalVi=baseVi+sumZvanjaVi+(stigljaTeam==='vi'? 90:0);
 
-  const ukupnaIgra=162+sumZvanjaMi+sumZvanjaVi+(stigljaTeam?90:0);
+  const ukupnaIgra=162+sumZvanjaMi+sumZvanjaVi+(stigljaTeam? 90:0);
   const pragProlaza=Math.floor(ukupnaIgra/2)+1;
 
-  const currentValue=activeTeam==='mi'?mi:vi;
-  const activeZvanja=activeTeam==='mi'?zvanjaMi:zvanjaVi;
+  const currentValue=activeTeam==='mi'? mi:vi;
+  const activeZvanja=activeTeam==='mi'? zvanjaMi:zvanjaVi;
 
-  const getZvanjeCount=(value:number) => {
+  const getZvanjeCount=(value: number) => {
     return activeZvanja.filter(item => item===value).length;
   };
 
-  const addDigit=(digit:string) => {
+  const addDigit=(digit: string) => {
     const next=currentValue+digit;
-
     if(next.length>3) return;
 
     const nextNumber=Number(next);
@@ -91,15 +90,15 @@ const styles=createStyles(COLORS);
 
     if(activeTeam==='mi') {
       setMi(next);
-      setVi(next===''?'':String(162-nextNumber));
+      setVi(next===''? '':String(162-nextNumber));
     } else {
       setVi(next);
-      setMi(next===''?'':String(162-nextNumber));
+      setMi(next===''? '':String(162-nextNumber));
     }
   };
 
-  const toggleZvanje=(value:number) => {
-    const updateZvanja=(prev:number[]) => {
+  const toggleZvanje=(value: number) => {
+    const updateZvanja=(prev: number[]) => {
       const count=prev.filter(item => item===value).length;
 
       if(count>=3) {
@@ -116,7 +115,7 @@ const styles=createStyles(COLORS);
     }
   };
 
-  const resetZvanje=(value:number) => {
+  const resetZvanje=(value: number) => {
     if(activeTeam==='mi') {
       setZvanjaMi(prev => prev.filter(item => item!==value));
     } else {
@@ -125,7 +124,7 @@ const styles=createStyles(COLORS);
   };
 
   const toggleStiglja=() => {
-    setStigljaTeam(prev => (prev===activeTeam?null:activeTeam));
+    setStigljaTeam(prev => (prev===activeTeam? null:activeTeam));
   };
 
   const handleCancel=() => {
@@ -171,7 +170,7 @@ const styles=createStyles(COLORS);
   };
 
   const calculateFinalScore=() => {
-    const calledScore=calledTeam==='mi'?totalMi:totalVi;
+    const calledScore=calledTeam==='mi'? totalMi:totalVi;
 
     let finalMi=totalMi;
     let finalVi=totalVi;
@@ -194,7 +193,7 @@ const styles=createStyles(COLORS);
 
     const {finalMi,finalVi}=calculateFinalScore();
 
-    const newRound:Round={
+    const newRound: Round={
       id: rounds.length+1,
       mi: finalMi,
       vi: finalVi,
@@ -213,7 +212,7 @@ const styles=createStyles(COLORS);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Text style={styles.back}>←</Text>
       </TouchableOpacity>
@@ -221,10 +220,7 @@ const styles=createStyles(COLORS);
       <View style={styles.content}>
         <View style={styles.teamRow}>
           <TouchableOpacity
-            style={[
-              styles.teamCard,
-              activeTeam==='mi'&&styles.activeTeamCard,
-            ]}
+            style={[styles.teamCard,activeTeam==='mi'&&styles.activeTeamCard]}
             onPress={() => setActiveTeam('mi')}
           >
             <Text style={styles.teamTitle}>MI</Text>
@@ -232,10 +228,7 @@ const styles=createStyles(COLORS);
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.teamCard,
-              activeTeam==='vi'&&styles.activeTeamCard,
-            ]}
+            style={[styles.teamCard,activeTeam==='vi'&&styles.activeTeamCard]}
             onPress={() => setActiveTeam('vi')}
           >
             <Text style={styles.teamTitle}>VI</Text>
@@ -296,12 +289,7 @@ const styles=createStyles(COLORS);
                 delayLongPress={350}
               >
                 <View style={styles.zvanjeInner}>
-                  <Text
-                    style={[
-                      styles.zvanjeText,
-                      count>0&&styles.selected,
-                    ]}
-                  >
+                  <Text style={[styles.zvanjeText,count>0&&styles.selected]}>
                     {value}
                   </Text>
 
@@ -340,7 +328,7 @@ const styles=createStyles(COLORS);
                 <TouchableOpacity
                   key={`${item}-${index}`}
                   style={styles.key}
-                  onPress={() => item==='<'?removeDigit():addDigit(item)}
+                  onPress={() => item==='<'? removeDigit():addDigit(item)}
                 >
                   <Text style={styles.keyText}>{item}</Text>
                 </TouchableOpacity>
@@ -363,210 +351,215 @@ const styles=createStyles(COLORS);
   );
 }
 
-const createStyles=(COLORS: typeof THEMES.light) =>
-  StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+const createStyles=(COLORS: typeof THEMES.light,bottomInset: number) => {
+  const isAndroid=Platform.OS==='android';
 
-  backButton: {
-    paddingTop: 14,
-    paddingLeft: 22,
-    paddingBottom: 8,
-  },
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
 
-  back: {
-    fontSize: 28,
-    color: COLORS.text,
-  },
+    backButton: {
+      paddingTop: isAndroid? 2:14,
+      paddingLeft: 22,
+      paddingBottom: isAndroid? 0:8,
+    },
 
-  content: {
-    flex: 1,
-    paddingHorizontal: 22,
-    paddingTop: 6,
-  },
+    back: {
+      fontSize: isAndroid? 25:28,
+      color: COLORS.text,
+    },
 
-  teamRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
+content: {
+  flex: 1,
+  paddingHorizontal: 22,
+  paddingTop: isAndroid ? 0 : 6,
+  justifyContent: isAndroid ? 'flex-start' : 'space-between',
+},
 
-  teamCard: {
-    width: '48%',
-    height: 78,
-    backgroundColor: COLORS.primaryTransparent,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    teamRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
 
-  activeTeamCard: {
-    borderWidth: 2,
-    borderColor: COLORS.dark,
-  },
+    teamCard: {
+      width: '48%',
+      height: isAndroid? 58:78,
+      backgroundColor: COLORS.primaryTransparent,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  teamTitle: {
-    fontSize: 19,
-    color: COLORS.text,
-    fontWeight: '500',
-  },
+    activeTeamCard: {
+      borderWidth: 2,
+      borderColor: COLORS.dark,
+    },
 
-  teamScore: {
-    fontSize: 28,
-    color: COLORS.text,
-    fontWeight: '700',
-  },
+    teamTitle: {
+      fontSize: isAndroid? 17:19,
+      color: COLORS.text,
+      fontWeight: '500',
+    },
 
-  calledSection: {
-    marginTop: 18,
-    alignItems: 'center',
-  },
+    teamScore: {
+      fontSize: isAndroid? 23:28,
+      color: COLORS.text,
+      fontWeight: '700',
+    },
 
-  calledLabel: {
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 7,
-  },
+calledSection: {
+  marginTop: isAndroid ? 26 : 18,
+  alignItems: 'center',
+},
 
-  calledRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
+    calledLabel: {
+      color: COLORS.text,
+      fontSize: 14,
+      fontWeight: '500',
+      marginBottom: isAndroid? 4:7,
+    },
 
-  calledButton: {
-    minWidth: 58,
-    paddingVertical: 6,
-    borderRadius: 10,
-    backgroundColor: COLORS.primaryTransparent,
-    alignItems: 'center',
-  },
+    calledRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
 
-  calledButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderWidth: 1,
-    borderColor: COLORS.dark,
-  },
+    calledButton: {
+      minWidth: 58,
+      paddingVertical: isAndroid? 4:6,
+      borderRadius: 10,
+      backgroundColor: COLORS.primaryTransparent,
+      alignItems: 'center',
+    },
 
-  calledText: {
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+    calledButtonActive: {
+      backgroundColor: COLORS.primary,
+      borderWidth: 1,
+      borderColor: COLORS.dark,
+    },
 
-  calledTextActive: {
-    fontWeight: '900',
-  },
+    calledText: {
+      color: COLORS.text,
+      fontSize: 14,
+      fontWeight: '600',
+    },
 
-  zvanjaGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 18,
-    marginBottom: 18,
-  },
+    calledTextActive: {
+      fontWeight: '900',
+    },
 
-  zvanjeButton: {
-    width: '33.33%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 7,
-  },
+zvanjaGrid: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  marginTop: isAndroid ? 26 : 18,
+  marginBottom: isAndroid ? 18 : 18,
+},
 
-  zvanjeInner: {
-    position: 'relative',
-    minWidth: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    zvanjeButton: {
+      width: '33.33%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: isAndroid? 2:7,
+    },
 
-  zvanjeText: {
-    fontSize: 20,
-    color: COLORS.text,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
+    zvanjeInner: {
+      position: 'relative',
+      minWidth: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  selected: {
-    fontWeight: '900',
-  },
+    zvanjeText: {
+      fontSize: isAndroid? 18:20,
+      color: COLORS.text,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
 
-  badge: {
-    position: 'absolute',
-    top: -8,
-    right: -16,
-    minWidth: 17,
-    height: 17,
-    borderRadius: 9,
-    backgroundColor: COLORS.dark,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
+    selected: {
+      fontWeight: '900',
+    },
 
-  badgeText: {
-    color: COLORS.white,
-    fontSize: 10,
-    fontWeight: '700',
-  },
+    badge: {
+      position: 'absolute',
+      top: -8,
+      right: -16,
+      minWidth: 17,
+      height: 17,
+      borderRadius: 9,
+      backgroundColor: COLORS.dark,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 4,
+    },
 
-  separator: {
-    height: 1,
-    backgroundColor: COLORS.primaryTransparent,
-    marginBottom: 22,
-  },
+    badgeText: {
+      color: COLORS.white,
+      fontSize: 10,
+      fontWeight: '700',
+    },
 
-  keypad: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: 4,
-  },
+separator: {
+  height: 1,
+  backgroundColor: COLORS.primaryTransparent,
+  marginBottom: isAndroid ? 18 : 22,
+},
 
-  key: {
-    width: '30%',
-    height: 58,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
+keypad: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  marginTop: isAndroid ? 0 : 4,
+},
 
-  keyText: {
-    color: COLORS.dark,
-    fontSize: 32,
-    fontWeight: '500',
-  },
+key: {
+  width: '30%',
+  height: isAndroid ? 55 : 58,
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginBottom: isAndroid ? 8 : 16,
+},
 
-  footer: {
-    height: 82,
-    flexDirection: 'row',
-  },
+    keyText: {
+      color: COLORS.dark,
+      fontSize: isAndroid? 30:32,
+      fontWeight: '500',
+    },
 
-  cancelButton: {
-    width: '39%',
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    footer: {
+      height: isAndroid? 64:82,
+      flexDirection: 'row',
+      paddingBottom: 0,
+    },
 
-  submitButton: {
-    width: '61%',
-    backgroundColor: COLORS.dark,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    cancelButton: {
+      width: '39%',
+      backgroundColor: COLORS.white,
+      borderWidth: 1,
+      borderColor: COLORS.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  cancelText: {
-    color: COLORS.dark,
-    fontSize: 16,
-    fontWeight: '700',
-  },
+    submitButton: {
+      width: '61%',
+      backgroundColor: COLORS.dark,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  submitText: {
-    color: COLORS.white,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-});
+    cancelText: {
+      color: COLORS.dark,
+      fontSize: isAndroid? 15:16,
+      fontWeight: '700',
+    },
+
+    submitText: {
+      color: COLORS.white,
+      fontSize: isAndroid? 16:17,
+      fontWeight: '700',
+    },
+  });
+};
