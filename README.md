@@ -1,50 +1,60 @@
-# Welcome to your Expo app 👋
+# Bela blok
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Mobilna aplikacija za vođenje rezultata u kartaškoj igri belot razvijena u sklopu diplomskog rada korištenjem React Native okruženja i Expo platforme.
 
-## Get started
+## Opis projekta
 
-1. Install dependencies
+Bela blok omogućuje jednostavno i brzo vođenje rezultata tijekom igre belot. Aplikacija automatski izračunava bodove, podržava unos zvanja te vodi evidenciju osvojenih partija.
 
-   ```bash
-   npm install
-   ```
+Aplikacija je razvijena za Android i iOS uređaje korištenjem jedinstvene baze izvornog koda.
 
-2. Start the app
+## Funkcionalnosti
 
-   ```bash
-   npx expo start
-   ```
+- unos bodova za obje ekipe
+- automatski izračun rezultata
+- unos zvanja
+- unos štiglje
+- automatsko određivanje prolaza ili pada ekipe koja je zvala adut
+- evidencija osvojenih partija
+- odabir ciljnog broja bodova (501, 701 ili 1001)
+- svijetla i tamna tema
+- prilagođeno korisničko sučelje za Android i iOS
 
-In the output, you'll find options to open the app in a
+## Korištene tehnologije
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- React Native
+- Expo
+- Expo Router
+- TypeScript
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Pokretanje projekta
 
-## Get a fresh project
-
-When you're ready, run:
+1. Instalirati potrebne pakete:
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Pokrenuti razvojni poslužitelj:
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Nakon pokretanja moguće je otvoriti aplikaciju u:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Expo Go aplikaciji
+- Android emulatoru
+- iOS simulatoru
 
-## Join the community
+## Struktura projekta
 
-Join our community of developers creating universal apps.
+Glavne datoteke aplikacije nalaze se u mapi **app**, dok se zajedničke konstante i pomoćne funkcije nalaze u odgovarajućim mapama projekta.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Autor
+
+Dorotea Dražić
+
+Diplomski rad
+
+2026.
