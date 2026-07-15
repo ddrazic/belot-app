@@ -49,7 +49,26 @@ Nakon pokretanja moguće je otvoriti aplikaciju u:
 
 ## Struktura projekta
 
-Glavne datoteke aplikacije nalaze se u mapi **app**, dok se zajedničke konstante i pomoćne funkcije nalaze u odgovarajućim mapama projekta.
+```text
+BELOT-APP/
+├── app/
+│   ├── constants/
+│   ├── _layout.tsx
+│   ├── index.tsx
+│   ├── unos.tsx
+│   ├── rezultat.tsx
+│   └── postavke.tsx
+├── assets/
+├── hooks/
+├── .gitignore
+├── app.json
+├── eslint.config.js
+├── expo-env.d.ts
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+└── README.md
+```
 
 ## Autor
 
